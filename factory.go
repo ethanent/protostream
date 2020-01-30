@@ -28,7 +28,9 @@ func (f *Factory) CreateStream() *Stream {
 	}
 }
 
-func (f *Factory) GetTypeID(msgTest proto.Message) (int, error) {
+// getTypeID returns the registered ID for a message.
+// It will error if the message type has not been registered with Factory f.
+func (f *Factory) getTypeID(msgTest proto.Message) (int, error) {
 	var typeID *int = nil
 
 	for id, msg := range f.messages {
@@ -39,7 +41,7 @@ func (f *Factory) GetTypeID(msgTest proto.Message) (int, error) {
 	}
 
 	if typeID == nil {
-		return 0, errors.New("Stream cannot send unregistered message")
+		return 0, errors.New("Factory cannot resolve unregistered message type")
 	}
 
 	return *typeID, nil

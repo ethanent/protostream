@@ -97,7 +97,7 @@ func (s *Stream) Push(data proto.Message) error {
 
 	// Find relevant message ID
 
-	typeID, err := s.factory.GetTypeID(data)
+	typeID, err := s.factory.getTypeID(data)
 
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func (s *Stream) Push(data proto.Message) error {
 
 // Subscribe adds h to notification queue for incoming messages of the same type as message.
 func (s *Stream) Subscribe(message proto.Message, h HandlerFunc) error {
-	messageID, err := s.factory.GetTypeID(message)
+	messageID, err := s.factory.getTypeID(message)
 
 	if err != nil {
 		return err
