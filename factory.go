@@ -31,7 +31,7 @@ func (f *Factory) CreateStream() *Stream {
 // getTypeID returns the registered ID for a message.
 // It will error if the message type has not been registered with Factory f.
 func (f *Factory) getTypeID(msgTest proto.Message) (int, error) {
-	var typeID *int = nil
+	var typeID *int
 
 	for id, msg := range f.messages {
 		if reflect.TypeOf(msgTest) == reflect.TypeOf(msg) {
