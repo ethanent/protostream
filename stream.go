@@ -8,6 +8,9 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+// Stream is a duplex Protocol Buffers streaming agent.
+// Messages can be read from a Stream using its Subscribe method.
+// Messages can be written to a Stream's destination using the Stream's Push method.
 type Stream struct {
 	factory       *Factory
 	buffer        []byte
@@ -15,8 +18,10 @@ type Stream struct {
 	out           io.Writer
 }
 
+// HandlerFunc is a callback function accepting a Protocol Buffers message.
 type HandlerFunc func(data proto.Message)
 
+// Out sets the target writer for stream s (this is where s.Push will write messages.)
 func (s *Stream) Out(to io.Writer) {
 	s.out = to
 }
@@ -82,6 +87,7 @@ func (s *Stream) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
+// Push writes a message to s.Out.
 func (s *Stream) Push(data proto.Message) error {
 	serial, err := proto.Marshal(data)
 
@@ -130,13 +136,22 @@ func (s *Stream) Push(data proto.Message) error {
 	return nil
 }
 
-func (s *Stream) Subscribe(message int, h HandlerFunc) {
-	subsArray, ok := s.subscriptions[message]
+// Subscribe adds h to notification queue for incoming messages of the same type as message.
+func (s *Stream) Subscribe(message proto.Message, h HandlerFunc) error {
+	messageID, err := s.factory.GetTypeID(message)
 
-	if !ok {
-		s.subscriptions[message] = []HandlerFunc{}
-		subsArray = s.subscriptions[message]
+	if err != nil {
+		return err
 	}
 
-	s.subscriptions[message] = append(subsArray, h)
+	subsArray, ok := s.subscriptions[messageID]
+
+	if !ok {
+		s.subscriptions[messageID] = []HandlerFunc{}
+		subsArray = s.subscriptions[messageID]
+	}
+
+	s.subscriptions[messageID] = append(subsArray, h)
+
+	return nil
 }

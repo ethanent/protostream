@@ -2,7 +2,12 @@ syntax = "proto3";
 
 package pcol;
 
-message test {
+message Test {
     string name = 1;
     int32 age = 2;
+}
+
+message TestReceipt {
+    bool ok = 1;
+    string error = 2;
 }
