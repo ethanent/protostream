@@ -3,6 +3,7 @@ package protostream
 import (
 	"errors"
 	"reflect"
+	"strconv"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -15,6 +16,12 @@ type Factory struct {
 // RegisterMessage saves a message to the Factory for its Streams to use.
 // id refers to the id sent to Streams to specify the message type.
 func (f *Factory) RegisterMessage(id int, message proto.Message) {
+	_, ok := f.messages[id]
+
+	if ok {
+		panic("message of id " + strconv.Itoa(id) + " has already been declared.")
+	}
+
 	f.messages[id] = message
 }
 
