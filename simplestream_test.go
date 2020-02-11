@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestRecv(t *testing.T) {
+func TestTransfer(t *testing.T) {
 	// Send many messages to help test durability
 	sendCount := 10000
 
