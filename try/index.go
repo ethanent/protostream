@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/ethanent/protostream"
 	"github.com/ethanent/protostream/try/pcol"
@@ -17,8 +18,8 @@ func main() {
 	s1 := fac.CreateStream()
 	s2 := fac.CreateStream()
 
-	s1.Out(s2)
-	s2.Out(s1)
+	go io.Copy(s2, s1)
+	go io.Copy(s1, s2)
 
 	s2.Subscribe(&pcol.Test{Name: "Ethan"}, func(data proto.Message) {
 		parsed := data.(*pcol.Test)

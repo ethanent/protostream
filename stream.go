@@ -2,8 +2,8 @@ package protostream
 
 import (
 	"encoding/binary"
-	"io"
 	"reflect"
+	"sync"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -15,18 +15,33 @@ type Stream struct {
 	factory       *Factory
 	buffer        []byte
 	subscriptions map[int][]HandlerFunc
-	out           io.Writer
+	outBuffer     []byte
+	outMut        *sync.RWMutex
+	inMut         *sync.Mutex
 }
 
 // HandlerFunc is a callback function accepting a Protocol Buffers message.
 type HandlerFunc func(data proto.Message)
 
-// Out sets the target writer for stream s (this is where s.Push will write messages.)
-func (s *Stream) Out(to io.Writer) {
-	s.out = to
+func (s *Stream) Read(p []byte) (n int, err error) {
+	s.outMut.RLock()
+	defer s.outMut.RUnlock()
+
+	readIdx := 0
+
+	for readIdx = 0; readIdx < len(p) && readIdx < len(s.outBuffer); readIdx++ {
+		p[readIdx] = s.outBuffer[readIdx]
+	}
+
+	s.outBuffer = s.outBuffer[readIdx:]
+
+	return readIdx, nil
 }
 
 func (s *Stream) Write(p []byte) (n int, err error) {
+	s.inMut.Lock()
+	defer s.inMut.Unlock()
+
 	s.buffer = append(s.buffer, p...)
 
 	uvVal, uvLen := binary.Uvarint(s.buffer)
@@ -87,7 +102,7 @@ func (s *Stream) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// Push writes a message to s.Out.
+// Push writes a message to outBuffer.
 func (s *Stream) Push(data proto.Message) error {
 	serial, err := proto.Marshal(data)
 
@@ -127,11 +142,13 @@ func (s *Stream) Push(data proto.Message) error {
 
 	sendBuf = append(sendBuf, finalSerial...)
 
-	_, err = s.out.Write(sendBuf)
+	// Write sendBuf to outBuffer
 
-	if err != nil {
-		return err
-	}
+	s.outMut.Lock()
+
+	s.outBuffer = append(s.outBuffer, sendBuf...)
+
+	s.outMut.Unlock()
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 	"strconv"
+	"sync"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -31,7 +32,9 @@ func (f *Factory) CreateStream() *Stream {
 		factory:       f,
 		buffer:        []byte{},
 		subscriptions: map[int][]HandlerFunc{},
-		out:           nil,
+		outBuffer:     []byte{},
+		outMut:        &sync.RWMutex{},
+		inMut:         &sync.Mutex{},
 	}
 }
 
