@@ -10,3 +10,19 @@ Protocol Buffer streaming in Go
 ```sh
 go get github.com/ethanent/protostream
 ```
+
+## Design Goal
+
+Status: In progress. Design not finalized, this is an early conception.
+
+```go
+// For each conn (eg. a net.Conn or a QUIC connection)
+
+wrap := protostream.Wrap(conn)
+
+wrap.Handle(func (*pb.ChatSend) {
+    wrap.Send(&pb.Status{
+        Code: 1,
+    })
+})
+```
