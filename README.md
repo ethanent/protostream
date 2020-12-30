@@ -16,13 +16,15 @@ go get github.com/ethanent/protostream
 Status: In progress. Design not finalized, this is an early conception.
 
 ```go
-// For each conn (eg. a net.Conn or a QUIC connection)
+mgr := protostream.NewConnMgr()
 
-wrap := protostream.Wrap(conn)
+mgr.Handle(func (*pb.ChatSend) *pb.Status {
+    return *pb.Status{
+        Code: 1
+    }
+})
 
-wrap.Handle(func (*pb.ChatSend) {
-    wrap.Send(&pb.Status{
-        Code: 1,
-    })
+mgr.Handle(func (*pb.Hello) {
+    fmt.Println("Got hello.")
 })
 ```
